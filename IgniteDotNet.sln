@@ -5,6 +5,12 @@ VisualStudioVersion = 17.5.33627.172
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "In-Memory Caching-ConsoleClient", "ApacheConsoleClient\In-Memory Caching-ConsoleClient.csproj", "{229ABCE7-8D8A-42ED-8502-BA3210917091}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Complete-CRUD-Application", "Complete-CRUD-Application\Complete-CRUD-Application.csproj", "{AA87317B-4472-4248-93B0-3609AD509664}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IgniteServer", "IgniteServer\IgniteServer.csproj", "{09F032ED-2231-4950-9C44-0DD1CCBC0C67}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Ignite.API", "Ignite.API\Ignite.API.csproj", "{BB699C42-2F0C-4BB9-8978-1630BA205BA1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +21,18 @@ Global
 		{229ABCE7-8D8A-42ED-8502-BA3210917091}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{229ABCE7-8D8A-42ED-8502-BA3210917091}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{229ABCE7-8D8A-42ED-8502-BA3210917091}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA87317B-4472-4248-93B0-3609AD509664}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA87317B-4472-4248-93B0-3609AD509664}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA87317B-4472-4248-93B0-3609AD509664}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA87317B-4472-4248-93B0-3609AD509664}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09F032ED-2231-4950-9C44-0DD1CCBC0C67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09F032ED-2231-4950-9C44-0DD1CCBC0C67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09F032ED-2231-4950-9C44-0DD1CCBC0C67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09F032ED-2231-4950-9C44-0DD1CCBC0C67}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BB699C42-2F0C-4BB9-8978-1630BA205BA1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BB699C42-2F0C-4BB9-8978-1630BA205BA1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BB699C42-2F0C-4BB9-8978-1630BA205BA1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BB699C42-2F0C-4BB9-8978-1630BA205BA1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

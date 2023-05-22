@@ -1,0 +1,230 @@
+﻿using Apache.Ignite.Core;
+using Apache.Ignite.Core.Cache.Configuration;
+using Apache.Ignite.Core.Cache.Store;
+using Apache.Ignite.Core.Common;
+using Apache.Ignite.Core.Discovery.Tcp;
+using Apache.Ignite.Core.Discovery.Tcp.Static;
+using MySql.Data.MySqlClient;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+
+
+// Create Ignite configuration.
+var cfg = new IgniteConfiguration
+{
+    DiscoverySpi = new TcpDiscoverySpi
+    {
+        IpFinder = new TcpDiscoveryStaticIpFinder
+        {
+            Endpoints = new[] { "127.0.0.1:47500..47509" }
+        },
+        LocalAddress = "127.0.0.1"
+    },
+    CacheConfiguration = new[]
+    {
+                    new CacheConfiguration("myCache")
+                    {
+                        CacheStoreFactory = new CacheStoreFactory(), //Factory<ICacheStore>(new CacheStore()),
+                        ReadThrough = true,
+                        WriteThrough = true,
+                        KeepBinaryInStore = false,
+                        SqlSchema = "PUBLIC",
+                        SqlEscapeAll = true,
+                        QueryEntities = new[]
+                        {
+                            new QueryEntity(typeof(int), typeof(string))
+                            {
+                                TableName = "Person",
+                                KeyFieldName = "id",
+                                Fields = new[]
+                                {
+                                    new QueryField("id", typeof(int)),
+                                    new QueryField("name", typeof(string))
+                                }
+                            }
+                        }
+                    }
+                }
+};
+
+// Start Ignite.
+using (var ignite = Ignition.Start(cfg))
+{
+    // Get cache.
+    var cache = ignite.GetCache<int, string>("myCache");
+
+    // Insert data into database.
+    using (var conn = new MySqlConnection("Server=localhost;Database=myDatabase;Uid=myUser;Pwd=myPassword;"))
+    using (var cmd = new MySqlCommand("INSERT INTO myTable (id, name) VALUES (@id, @name)", conn))
+    {
+        conn.Open();
+        cmd.Parameters.AddWithValue("@id", 1);
+        cmd.Parameters.AddWithValue("@name", "John");
+        cmd.ExecuteNonQuery();
+    }
+
+    // Get data from cache.
+    var data1 = cache.Get(1);
+
+    var data2 = "";
+    // Get data from database.
+    using (var conn = new MySqlConnection("Server=localhost;Database=myDatabase;Uid=myUser;Pwd=myPassword;"))
+    {
+        using (var cmd = new MySqlCommand("SELECT name FROM myTable WHERE id=@id", conn))
+        {
+            conn.Open();
+            cmd.Parameters.AddWithValue("@id", 1);
+            var reader = cmd.ExecuteReader();
+            reader.Read();
+            data2 = reader.GetString(0);
+        }
+    }
+
+    Console.WriteLine($"Data from cache: {data1}");
+    Console.WriteLine($"Data from database: {data2}");
+
+    // Insert data into database.
+    using (var conn = new MySqlConnection("Server=localhost;Database=myDatabase;Uid=myUser;Pwd=myPassword;"))
+    using (var cmd = new MySqlCommand("INSERT INTO myTable (id, name) VALUES (@id, @name)", conn))
+    {
+        conn.Open();
+        cmd.Parameters.AddWithValue("@id", 2);
+        cmd.Parameters.AddWithValue("@name", "Jane");
+        cmd.ExecuteNonQuery();
+    }
+
+    string data3 = "";
+    // Get data from database.
+    using (var conn = new MySqlConnection("Server=localhost;Database=myDatabase;Uid=myUser;Pwd=myPassword;"))
+    {
+        using (var cmd = new MySqlCommand("SELECT name FROM myTable WHERE id=@id", conn))
+        {
+            conn.Open();
+            cmd.Parameters.AddWithValue("@id", 2);
+            var reader = cmd.ExecuteReader();
+            reader.Read();
+            data3 = reader.GetString(0);
+        }
+    }
+
+    Console.WriteLine($"Data from database: {data3}");
+
+    // Update cache with latest data.
+    cache.Put(2, data3);
+
+    // Get data from cache.
+    var data4 = cache.Get(2);
+
+    Console.WriteLine($"Data from cache: {data4}");
+}
+
+public class CacheStoreFactory : IFactory<CacheStore>
+{
+    public CacheStoreFactory()
+    {
+    }
+
+    public CacheStore CreateInstance()
+    {
+        return new CacheStore();
+    }
+}
+
+public class CacheStore : ICacheStore<int, string>
+{
+    public void Delete(int key)
+    {
+        // Delete data from database.
+        using (var conn = new MySqlConnection("Server=localhost;Database=myDatabase;Uid=myUser;Pwd=myPassword;"))
+        using (var cmd = new MySqlCommand("DELETE FROM myTable WHERE id=@id", conn))
+        {
+            conn.Open();
+            cmd.Parameters.AddWithValue("@id", key);
+            cmd.ExecuteNonQuery();
+        }
+    }
+
+    public void DeleteAll(IEnumerable<int> keys)
+    {
+        foreach (var key in keys)
+        {
+            // Delete data from database.
+            using (var conn = new MySqlConnection("Server=localhost;Database=myDatabase;Uid=myUser;Pwd=myPassword;"))
+            using (var cmd = new MySqlCommand("DELETE FROM myTable WHERE id=@id", conn))
+            {
+                conn.Open();
+                cmd.Parameters.AddWithValue("@id", key);
+                cmd.ExecuteNonQuery();
+            }
+        }
+    }
+
+
+
+    public string Load(int key)
+    {
+        // Get data from database.
+        using (var conn = new MySqlConnection("Server=localhost;Database=myDatabase;Uid=myUser;Pwd=myPassword;"))
+        using (var cmd = new MySqlCommand("SELECT name FROM myTable WHERE id=@id", conn))
+        {
+            conn.Open();
+            cmd.Parameters.AddWithValue("@id", key);
+            var reader = cmd.ExecuteReader();
+            reader.Read();
+            return reader.GetString(0);
+        }
+    }
+
+    public IDictionary<int, string> LoadAll(IEnumerable<int> keys)
+    {
+        var result = new Dictionary<int, string>();
+
+        foreach (var key in keys)
+        {
+            result.Add(key, Load(key));
+        }
+
+        return result;
+    }
+
+    public void LoadCache(Action<int, string> act, params object[] args)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void SessionEnd(bool commit)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void Write(int key, string val)
+    {
+        // Insert or update data in database.
+        using (var conn = new MySqlConnection("Server=localhost;Database=myDatabase;Uid=myUser;Pwd=myPassword;"))
+        using (var cmd = new MySqlCommand("INSERT INTO myTable (id, name) VALUES (@id, @name) ON DUPLICATE KEY UPDATE name=@name", conn))
+        {
+            conn.Open();
+            cmd.Parameters.AddWithValue("@id", key);
+            cmd.Parameters.AddWithValue("@name", val);
+            cmd.ExecuteNonQuery();
+        }
+    }
+
+    public void WriteAll(IDictionary<int, string> entries)
+    {
+        foreach (var entry in entries)
+        {
+            Write(entry.Key, entry.Value);
+        }
+    }
+
+    public void WriteAll(IEnumerable<KeyValuePair<int, string>> entries)
+    {
+        throw new NotImplementedException();
+    }
+
+    IEnumerable<KeyValuePair<int, string>> ICacheStore<int, string>.LoadAll(IEnumerable<int> keys)
+    {
+        return null;
+        //throw new NotImplementedException();
+    }
+}
